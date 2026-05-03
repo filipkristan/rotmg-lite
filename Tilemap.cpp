@@ -4,13 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
 Tiles tile;
 std::vector<Tiles> tiles;
-Tiles tileChecker;
-std::vector<Tiles> tileCheckers;
-std::vector<Tiles> visibleTiles;
 std::string placeholderLevel = "../level.txt";
 std::string abyss = "../abyss.txt";
 std::string udl = "../udl.txt";
@@ -77,39 +73,22 @@ void loadLevel(std::string name) {
 }
 
 void drawTiles() {
-    for (auto &tile: visibleTiles) {
-        Texture2D *tempTexture;
-        DrawTextureEx(snake2texture, {tile.x, tile.y}, 0, 6, WHITE);
-        //DrawText(TextFormat("%d", tile.wall),tile.x,tile.y,10,WHITE);
-    }
+    float screenW = (float) GetScreenWidth();
+    float screenH = (float) GetScreenHeight();
 
-    int renderdistance = 16;
-    tileCheckers.clear();
-    for (int i = 0; i < renderdistance; ++i) {
-        for (int j = 0; j < renderdistance; j++) {
-            int gridX = player.pos.x / 48 - renderdistance / 2;
-            int gridY = player.pos.y / 48 - renderdistance / 2;
-            int placeX = gridX * 48 + i * 48;
-            int placeY = gridY * 48 + j * 48;
+    Rectangle viewport = {
+        camera.target.x - (camera.offset.x / camera.zoom),
+        camera.target.y - (camera.offset.y / camera.zoom),
+        screenW / camera.zoom,
+        screenH / camera.zoom
+    };
 
-            tileChecker.x = placeX;
-            tileChecker.y = placeY;
-            tileCheckers.push_back(tileChecker);
+    for (auto &tile: tiles) {
+        Rectangle tileRect = {tile.x, tile.y, (float) snake2texture.width * 6, (float) snake2texture.height * 6};
+
+        if (CheckCollisionRecs(viewport, tileRect)) {
+            DrawTextureEx(snake2texture, {tile.x, tile.y}, 0, 6, WHITE);
         }
-    }
-
-    visibleTiles.clear();
-    for (auto &target: tiles) {
-        auto pos_it = std::find(tileCheckers.begin(), tileCheckers.end(), target);
-
-        if (pos_it != tileCheckers.end()) {
-            visibleTiles.push_back(target);
-        } else {
-            //cout << "Position {" << target.x << ", " << target.y << "} does not exist in the array.\n";
-        }
-    }
-    for (auto &loc: visibleTiles) {
-        //std::cout << "Tile located at {" << loc.x << ", " << loc.y << "} is visible.\n";
     }
 }
 
